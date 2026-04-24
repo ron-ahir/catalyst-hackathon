@@ -1,0 +1,98 @@
+[
+  {
+    "id": "c001",
+    "name": "Alice Johnson",
+    "email": "alice.johnson@example.com",
+    "current_role": "Senior Backend Engineer",
+    "company": "TechCorp",
+    "skills": ["Python", "FastAPI", "PostgreSQL", "AWS", "Docker", "Kubernetes"],
+    "experience_years": 6,
+    "about": "Passionate about building scalable systems. Experience with microservices and cloud architecture.",
+    "linkedin": "linkedin.com/in/alice-johnson",
+    "availability": "2 weeks notice"
+  },
+  {
+    "id": "c002",
+    "name": "Bob Chen",
+    "email": "bob.chen@example.com",
+    "current_role": "Full Stack Engineer",
+    "company": "StartupXYZ",
+    "skills": ["React", "Node.js", "TypeScript", "MongoDB", "GraphQL", "AWS"],
+    "experience_years": 4,
+    "about": "Creative problem solver with full-stack expertise. Built several production apps from scratch.",
+    "linkedin": "linkedin.com/in/bob-chen",
+    "availability": "Immediate"
+  },
+  {
+    "id": "c003",
+    "name": "Carol Martinez",
+    "email": "carol.martinez@example.com",
+    "current_role": "ML Engineer",
+    "company": "AILabs",
+    "skills": ["Python", "TensorFlow", "PyTorch", "LLMs", "Data Science", "FastAPI"],
+    "experience_years": 5,
+    "about": "Expertise in building ML pipelines and deploying models. Deep learning enthusiast.",
+    "linkedin": "linkedin.com/in/carol-martinez",
+    "availability": "1 month notice"
+  },
+  {
+    "id": "c004",
+    "name": "David Kumar",
+    "email": "david.kumar@example.com",
+    "current_role": "DevOps Engineer",
+    "company": "CloudSystems",
+    "skills": ["Kubernetes", "Docker", "CI/CD", "AWS", "Terraform", "Python"],
+    "experience_years": 7,
+    "about": "Infrastructure specialist with strong automation background. 7 years in cloud platforms.",
+    "linkedin": "linkedin.com/in/david-kumar",
+    "availability": "3 weeks notice"
+  },
+  {
+    "id": "c005",
+    "name": "Emma Wilson",
+    "email": "emma.wilson@example.com",
+    "current_role": "Frontend Engineer",
+    "company": "DesignStudio",
+    "skills": ["React", "Vue.js", "TypeScript", "CSS", "Figma", "Web3"],
+    "experience_years": 3,
+    "about": "UI/UX focused engineer. Strong in component design and responsive layouts.",
+    "linkedin": "linkedin.com/in/emma-wilson",
+    "availability": "2 weeks notice"
+  },
+  {
+    "id": "c006",
+    "name": "Frank Anderson",
+    "email": "frank.anderson@example.com",
+    "current_role": "Senior Software Engineer",
+    "company": "BigTech",
+    "skills": ["Java", "Go", "Kubernetes", "Distributed Systems", "Python", "gRPC"],
+    "experience_years": 10,
+    "about": "Veteran in building high-scale systems. Expert in distributed systems design.",
+    "linkedin": "linkedin.com/in/frank-anderson",
+    "availability": "1 month notice"
+  },
+  {
+    "id": "c007",
+    "name": "Grace Lee",
+    "email": "grace.lee@example.com",
+    "current_role": "Data Engineer",
+    "company": "DataFlow",
+    "skills": ["Spark", "Python", "SQL", "dbt", "Airflow", "Cloud Storage"],
+    "experience_years": 4,
+    "about": "Data pipeline specialist. Strong SQL and ETL experience.",
+    "linkedin": "linkedin.com/in/grace-lee",
+    "availability": "Immediate"
+  },
+  {
+    "id": "c008",
+    "name": "Henry Zhang",
+    "email": "henry.zhang@example.com",
+    "current_role": "Platform Engineer",
+    "company": "ScaleUp",
+    "skills": ["Go", "Rust", "Kubernetes", "Python", "Terraform", "Monitoring"],
+    "experience_years": 6,
+    "about": "Platform and tooling expert. Passionate about developer experience.",
+    "linkedin": "linkedin.com/in/henry-zhang",
+    "availability": "2 weeks notice"
+  }
+]
