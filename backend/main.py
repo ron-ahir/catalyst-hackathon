@@ -26,7 +26,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = Anthropic()
+# Initialize client lazily when needed
+def get_client():
+    return Anthropic()
 
 # Load mock candidate database
 def load_candidates():
@@ -105,8 +107,8 @@ Stream your analysis step-by-step."""
     # Multi-turn conversation with Claude for iterative refinement
     messages = [{"role": "user", "content": user_message}]
 
-    with client.messages.stream(
-        model="claude-3-5-sonnet-20241022",
+    with get_client().messages.stream(
+        model="claude-sonnet-4-6",
         max_tokens=2000,
         system=system_prompt,
         messages=messages,
