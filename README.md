@@ -48,6 +48,7 @@ Recruiting is slow and manual. Recruiters spend hours sifting through profiles a
 
 ## 🏗️ Architecture
 
+```
 catalyst-hackathon/
 ├── backend/
 │   ├── main.py
@@ -67,9 +68,11 @@ catalyst-hackathon/
 ├── LICENSE
 ├── QUICKSTART.md
 └── README.md
+```
 
 ### Agent Flow
 
+```
 RECRUITER INPUT: Job Description
 ↓
 ┌─────────────────────────────────────────┐
@@ -99,6 +102,7 @@ RECRUITER INPUT: Job Description
 │    • Interest signals + progress bars   │
 │    • Final score formula + reasoning    │
 └─────────────────────────────────────────┘
+```
 
 ---
 
