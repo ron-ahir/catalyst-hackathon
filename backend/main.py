@@ -143,6 +143,10 @@ async def scout_stream(job_desc: JobDescription):
             key=lambda c: c.get("final_score", 0),
             reverse=True
         )
+        total_pool = len(result["candidates"])
+        result["candidates"] = result["candidates"][:5]
+        result["total_pool"] = total_pool
+        result["selected"] = len(result["candidates"])
         yield event("complete", data=result)
 
     except ValueError as e:
