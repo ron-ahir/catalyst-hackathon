@@ -34,7 +34,7 @@ class JobDescription(BaseModel):
 
 SYSTEM_PROMPT = """You are a JSON-only talent matching API. You NEVER output markdown, code fences, prose, preambles, apologies, or any text outside of a single JSON object. Your response must begin with { and end with } and be directly parseable by Python json.loads() with zero pre-processing.
 
-Evaluate every candidate in the provided database against the job description. Return a JSON object containing ALL candidates sorted by final_score descending.
+Evaluate all candidates internally but only return the TOP 5 by final_score in your JSON response. Do not output data for any other candidates. Your response should contain exactly 5 candidates maximum.
 
 Scoring methodology:
 - match_score (0-100): technical alignment. Award 15pts per required skill exact match, 8pts for related skill. Cap skill points at 70. Add 10pts if experience_years >= required, subtract 10pts if experience_years < required - 2.
@@ -86,7 +86,7 @@ Minimum Years of Experience: {job_desc.years_experience}
 CANDIDATE DATABASE:
 {candidates_context}
 
-Include every candidate. Sort by final_score descending. Output only the JSON object."""
+Return only the top 5 candidates by final_score. Output only the JSON object."""
 
 
 def extract_json(raw_text: str) -> dict:
