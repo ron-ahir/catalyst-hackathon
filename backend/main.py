@@ -25,7 +25,7 @@ def load_candidates():
         return json.load(f)
 
 candidates_db = load_candidates()
-total_pool = len(candidates_db)
+TOTAL_POOL = len(candidates_db)
 
 class JobDescription(BaseModel):
     title: str
@@ -146,7 +146,7 @@ async def scout_stream(job_desc: JobDescription):
             key=lambda c: c.get("final_score", 0),
             reverse=True
         )[:5]
-        result["total_pool"] = total_pool
+        result["total_pool"] = TOTAL_POOL
         result["selected"] = len(result["candidates"])
         yield event("complete", data=result)
 
