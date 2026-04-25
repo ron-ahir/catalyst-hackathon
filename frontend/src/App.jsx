@@ -22,16 +22,12 @@ const DOT_KEYFRAMES = `
 
 function LoadingDisplay({ msgIndex }) {
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      minHeight: '200px', gap: '12px',
-    }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>
       <style>{DOT_KEYFRAMES}</style>
-      <p style={{ fontSize: '1em', color: '#555', margin: 0 }}>
-        {MESSAGES[msgIndex]}
-      </p>
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '1em', color: '#555' }}>
+          {MESSAGES[msgIndex]}
+        </span>
         {[0, 1, 2].map(i => (
           <div key={i} style={{
             width: '10px', height: '10px',
