@@ -1,9 +1,19 @@
 import React, { useState, useRef } from 'react';
 import JobForm from './components/JobForm';
-import ProgressLog from './components/ProgressLog';
 import CandidateTable from './components/CandidateTable';
 import CandidateDetail from './components/CandidateDetail';
 import './index.css';
+
+const MESSAGES = [
+  'Analyzing candidate profiles...',
+  'Matching skills against job requirements...',
+  'Simulating outreach conversations...',
+  'Scoring candidate interest levels...',
+  'Ranking and selecting top matches...',
+  'Preparing your shortlist...',
+];
+
+const SPINNER_CHARS = ['|', '/', '—', '\\'];
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -11,16 +21,18 @@ function App() {
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [jobTitle, setJobTitle] = useState('');
-  const [progressMessages, setProgressMessages] = useState([]);
   const [poolStats, setPoolStats] = useState({ total: 0, selected: 0 });
+  const [spinnerChar, setSpinnerChar] = useState('|');
+  const [msgIndex, setMsgIndex] = useState(0);
 
-  const timerRefs = useRef([]);
+  const spinnerRef = useRef(null);
+  const messageRef = useRef(null);
 
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
-  const clearTimers = () => {
-    timerRefs.current.forEach(t => clearTimeout(t));
-    timerRefs.current = [];
+  const clearIntervals = () => {
+    if (spinnerRef.current) { clearInterval(spinnerRef.current); spinnerRef.current = null; }
+    if (messageRef.current) { clearInterval(messageRef.current); messageRef.current = null; }
   };
 
   const handleScout = async (jobData) => {
@@ -28,25 +40,24 @@ function App() {
     setIsLoading(true);
     setCandidates([]);
     setSelectedCandidate(null);
-    setProgressMessages([]);
     setJobTitle(jobData.title);
     setPoolStats({ total: 0, selected: 0 });
+    setSpinnerChar('|');
+    setMsgIndex(0);
 
-    clearTimers();
+    clearIntervals();
 
-    const timedSteps = [
-      [5000,  'Analyzing skill matches across 50 candidates...'],
-      [10000, 'Simulating personalized outreach conversations...'],
-      [15000, 'Calculating interest and engagement scores...'],
-      [20000, 'Ranking candidates by combined score...'],
-    ];
+    let spinIdx = 0;
+    spinnerRef.current = setInterval(() => {
+      spinIdx = (spinIdx + 1) % SPINNER_CHARS.length;
+      setSpinnerChar(SPINNER_CHARS[spinIdx]);
+    }, 300);
 
-    timedSteps.forEach(([delay, msg]) => {
-      const t = setTimeout(() => {
-        setProgressMessages(prev => [...prev, msg]);
-      }, delay);
-      timerRefs.current.push(t);
-    });
+    let mIdx = 0;
+    messageRef.current = setInterval(() => {
+      mIdx = (mIdx + 1) % MESSAGES.length;
+      setMsgIndex(mIdx);
+    }, 6000);
 
     try {
       const response = await fetch(`${API_BASE}/api/scout`, {
@@ -71,15 +82,13 @@ function App() {
           if (!line.startsWith('data: ')) continue;
           try {
             const evt = JSON.parse(line.slice(6));
-            if (evt.type === 'progress') {
-              setProgressMessages(prev => [...prev, evt.message]);
-            } else if (evt.type === 'complete') {
-              clearTimers();
+            if (evt.type === 'complete') {
+              clearIntervals();
               setCandidates(evt.data.candidates || []);
               setPoolStats({ total: evt.data.total_pool || 0, selected: evt.data.selected || 0 });
               setIsLoading(false);
             } else if (evt.type === 'error') {
-              clearTimers();
+              clearIntervals();
               setError(evt.message);
               setIsLoading(false);
             }
@@ -87,7 +96,7 @@ function App() {
         }
       }
     } catch (err) {
-      clearTimers();
+      clearIntervals();
       setError(err.message || 'Failed to connect to API. Make sure the backend is running.');
       setIsLoading(false);
     }
@@ -109,7 +118,11 @@ function App() {
         <div className="section">
           <h2>Results</h2>
           {error && <div className="error">{error}</div>}
-          {isLoading && <ProgressLog messages={progressMessages} />}
+          {isLoading && (
+            <div style={{ textAlign: 'center', fontSize: '1em', color: '#667eea', padding: '40px 20px' }}>
+              {spinnerChar} {MESSAGES[msgIndex]}
+            </div>
+          )}
           {!isLoading && selectedCandidate ? (
             <CandidateDetail
               candidate={selectedCandidate}
