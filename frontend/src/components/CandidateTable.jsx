@@ -4,7 +4,7 @@ function ScoreBadge({ score }) {
   return <span className={`badge ${cls}`}>{clamped}</span>;
 }
 
-export default function CandidateTable({ candidates, jobTitle, onSelect }) {
+export default function CandidateTable({ candidates, jobTitle, onSelect, totalPool, selected }) {
   if (!candidates || candidates.length === 0) {
     return (
       <div className="results-content">
@@ -18,9 +18,14 @@ export default function CandidateTable({ candidates, jobTitle, onSelect }) {
   return (
     <div>
       {jobTitle && (
-        <h3 style={{ marginBottom: '16px', color: '#444', fontSize: '1em' }}>
+        <h3 style={{ marginBottom: '4px', color: '#444', fontSize: '1em' }}>
           Results for: <strong>{jobTitle}</strong>
         </h3>
+      )}
+      {totalPool > 0 && (
+        <p style={{ fontSize: '0.85em', color: '#888', marginBottom: '12px', marginTop: 0 }}>
+          Showing {selected} candidates selected from a pool of {totalPool}
+        </p>
       )}
       <div style={{ overflowX: 'auto' }}>
         <table className="candidate-table">
