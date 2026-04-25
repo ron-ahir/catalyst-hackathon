@@ -25,6 +25,7 @@ def load_candidates():
         return json.load(f)
 
 candidates_db = load_candidates()
+total_pool = len(candidates_db)
 
 class JobDescription(BaseModel):
     title: str
@@ -40,6 +41,8 @@ Scoring methodology:
 - match_score (0-100): technical alignment. Award 15pts per required skill exact match, 8pts for related skill. Cap skill points at 70. Add 10pts if experience_years >= required, subtract 10pts if experience_years < required - 2.
 - interest_score (0-100): Base 50pts. Add 20 if availability "Immediate", 10 if "2 weeks notice", 5 if "3 weeks notice". Add up to 20pts for enthusiasm in "about" field. Add 10pts if current_role aligns with job title.
 - final_score: round((match_score * 0.6) + (interest_score * 0.4))
+
+Be concise in your reasoning and analysis fields. Keep reasoning to 1 sentence, analysis to 1 sentence maximum.
 
 Conversation simulation: outreach must reference the specific job title and one concrete detail from the candidate's profile. Candidate response should sound like a real person consistent with their interest_score.
 
@@ -142,9 +145,7 @@ async def scout_stream(job_desc: JobDescription):
             result.get("candidates", []),
             key=lambda c: c.get("final_score", 0),
             reverse=True
-        )
-        total_pool = len(result["candidates"])
-        result["candidates"] = result["candidates"][:5]
+        )[:5]
         result["total_pool"] = total_pool
         result["selected"] = len(result["candidates"])
         yield event("complete", data=result)
