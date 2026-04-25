@@ -119,7 +119,7 @@ function App() {
           <h2>Results</h2>
           {error && <div className="error">{error}</div>}
           {isLoading && (
-            <div style={{ textAlign: 'center', fontSize: '1em', color: '#667eea', padding: '40px 20px' }}>
+            <div style={{ fontSize: '1em', color: '#667eea', padding: '40px 0', paddingLeft: '20px' }}>
               {spinnerChar} {MESSAGES[msgIndex]}
             </div>
           )}
