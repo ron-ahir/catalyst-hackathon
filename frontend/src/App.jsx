@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import JobForm from './components/JobForm';
 import ProgressLog from './components/ProgressLog';
 import CandidateTable from './components/CandidateTable';
@@ -12,8 +12,16 @@ function App() {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [jobTitle, setJobTitle] = useState('');
   const [progressMessages, setProgressMessages] = useState([]);
+  const [poolStats, setPoolStats] = useState({ total: 0, selected: 0 });
+
+  const timerRefs = useRef([]);
 
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
+
+  const clearTimers = () => {
+    timerRefs.current.forEach(t => clearTimeout(t));
+    timerRefs.current = [];
+  };
 
   const handleScout = async (jobData) => {
     setError('');
@@ -22,6 +30,23 @@ function App() {
     setSelectedCandidate(null);
     setProgressMessages([]);
     setJobTitle(jobData.title);
+    setPoolStats({ total: 0, selected: 0 });
+
+    clearTimers();
+
+    const timedSteps = [
+      [5000,  'Analyzing skill matches across 50 candidates...'],
+      [10000, 'Simulating personalized outreach conversations...'],
+      [15000, 'Calculating interest and engagement scores...'],
+      [20000, 'Ranking candidates by combined score...'],
+    ];
+
+    timedSteps.forEach(([delay, msg]) => {
+      const t = setTimeout(() => {
+        setProgressMessages(prev => [...prev, msg]);
+      }, delay);
+      timerRefs.current.push(t);
+    });
 
     try {
       const response = await fetch(`${API_BASE}/api/scout`, {
@@ -49,9 +74,12 @@ function App() {
             if (evt.type === 'progress') {
               setProgressMessages(prev => [...prev, evt.message]);
             } else if (evt.type === 'complete') {
+              clearTimers();
               setCandidates(evt.data.candidates || []);
+              setPoolStats({ total: evt.data.total_pool || 0, selected: evt.data.selected || 0 });
               setIsLoading(false);
             } else if (evt.type === 'error') {
+              clearTimers();
               setError(evt.message);
               setIsLoading(false);
             }
@@ -59,6 +87,7 @@ function App() {
         }
       }
     } catch (err) {
+      clearTimers();
       setError(err.message || 'Failed to connect to API. Make sure the backend is running.');
       setIsLoading(false);
     }
@@ -92,6 +121,8 @@ function App() {
                 candidates={candidates}
                 jobTitle={jobTitle}
                 onSelect={setSelectedCandidate}
+                totalPool={poolStats.total}
+                selected={poolStats.selected}
               />
             )
           )}
