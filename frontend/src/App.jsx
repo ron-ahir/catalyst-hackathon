@@ -5,15 +5,45 @@ import CandidateDetail from './components/CandidateDetail';
 import './index.css';
 
 const MESSAGES = [
-  'Analyzing candidate profiles...',
-  'Matching skills against job requirements...',
-  'Simulating outreach conversations...',
-  'Scoring candidate interest levels...',
-  'Ranking and selecting top matches...',
-  'Preparing your shortlist...',
+  'Analyzing candidate profiles',
+  'Matching skills against requirements',
+  'Simulating outreach conversations',
+  'Scoring candidate interest levels',
+  'Ranking and selecting top matches',
+  'Preparing your shortlist',
 ];
 
-const SPINNER_CHARS = ['|', '/', '—', '\\'];
+const DOT_KEYFRAMES = `
+  @keyframes dotPulse {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40%            { transform: scale(1.2); opacity: 1;   }
+  }
+`;
+
+function LoadingDisplay({ msgIndex }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      minHeight: '200px', gap: '12px',
+    }}>
+      <style>{DOT_KEYFRAMES}</style>
+      <p style={{ fontSize: '1em', color: '#555', margin: 0 }}>
+        {MESSAGES[msgIndex]}
+      </p>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        {[0, 1, 2].map(i => (
+          <div key={i} style={{
+            width: '10px', height: '10px',
+            borderRadius: '50%',
+            backgroundColor: '#667eea',
+            animation: `dotPulse 1.2s ease-in-out ${i * 0.2}s infinite`,
+          }} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -22,16 +52,13 @@ function App() {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [jobTitle, setJobTitle] = useState('');
   const [poolStats, setPoolStats] = useState({ total: 0, selected: 0 });
-  const [spinnerChar, setSpinnerChar] = useState('|');
   const [msgIndex, setMsgIndex] = useState(0);
 
-  const spinnerRef = useRef(null);
   const messageRef = useRef(null);
 
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
   const clearIntervals = () => {
-    if (spinnerRef.current) { clearInterval(spinnerRef.current); spinnerRef.current = null; }
     if (messageRef.current) { clearInterval(messageRef.current); messageRef.current = null; }
   };
 
@@ -42,16 +69,9 @@ function App() {
     setSelectedCandidate(null);
     setJobTitle(jobData.title);
     setPoolStats({ total: 0, selected: 0 });
-    setSpinnerChar('|');
     setMsgIndex(0);
 
     clearIntervals();
-
-    let spinIdx = 0;
-    spinnerRef.current = setInterval(() => {
-      spinIdx = (spinIdx + 1) % SPINNER_CHARS.length;
-      setSpinnerChar(SPINNER_CHARS[spinIdx]);
-    }, 300);
 
     let mIdx = 0;
     messageRef.current = setInterval(() => {
@@ -118,11 +138,7 @@ function App() {
         <div className="section">
           <h2>Results</h2>
           {error && <div className="error">{error}</div>}
-          {isLoading && (
-            <div style={{ fontSize: '1em', color: '#667eea', padding: '40px 0', paddingLeft: '20px' }}>
-              {spinnerChar} {MESSAGES[msgIndex]}
-            </div>
-          )}
+          {isLoading && <LoadingDisplay msgIndex={msgIndex} />}
           {!isLoading && selectedCandidate ? (
             <CandidateDetail
               candidate={selectedCandidate}
