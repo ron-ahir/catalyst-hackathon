@@ -1,33 +1,32 @@
 import React, { useState } from 'react';
 import JobForm from './components/JobForm';
-import ResultsStream from './components/ResultsStream';
+import ProgressLog from './components/ProgressLog';
+import CandidateTable from './components/CandidateTable';
+import CandidateDetail from './components/CandidateDetail';
 import './index.css';
 
 function App() {
-  const [streamContent, setStreamContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const eventSourceRef = React.useRef(null);
+  const [candidates, setCandidates] = useState([]);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [jobTitle, setJobTitle] = useState('');
+  const [progressMessages, setProgressMessages] = useState([]);
 
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
   const handleScout = async (jobData) => {
-    setStreamContent('');
     setError('');
     setIsLoading(true);
+    setCandidates([]);
+    setSelectedCandidate(null);
+    setProgressMessages([]);
+    setJobTitle(jobData.title);
 
     try {
-      // Close any existing connection
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-
-      // Make POST request to backend streaming endpoint
       const response = await fetch(`${API_BASE}/api/scout`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(jobData),
       });
 
@@ -35,7 +34,6 @@ function App() {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      // Parse streaming response
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
@@ -44,26 +42,24 @@ function App() {
         if (done) break;
 
         const chunk = decoder.decode(value);
-        // Parse Server-Sent Events format: "data: {json}\n\n"
-        const lines = chunk.split('\n');
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.substring(6));
-              if (data.chunk) {
-                setStreamContent((prev) => prev + data.chunk);
-              }
-            } catch (e) {
-              // Skip malformed JSON
+        for (const line of chunk.split('\n')) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const evt = JSON.parse(line.slice(6));
+            if (evt.type === 'progress') {
+              setProgressMessages(prev => [...prev, evt.message]);
+            } else if (evt.type === 'complete') {
+              setCandidates(evt.data.candidates || []);
+              setIsLoading(false);
+            } else if (evt.type === 'error') {
+              setError(evt.message);
+              setIsLoading(false);
             }
-          }
+          } catch (_) {}
         }
       }
     } catch (err) {
       setError(err.message || 'Failed to connect to API. Make sure the backend is running.');
-      console.error('Scout error:', err);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -72,7 +68,7 @@ function App() {
     <div className="container">
       <div className="header">
         <h1>🎯 Talent Scout Agent</h1>
-        <p>AI-Powered Candidate Discovery & Ranking with Real-Time Streaming</p>
+        <p>AI-Powered Candidate Discovery & Ranking</p>
       </div>
 
       <div className="main-content">
@@ -82,8 +78,23 @@ function App() {
         </div>
 
         <div className="section">
-          <h2>Live Analysis</h2>
-          <ResultsStream content={streamContent} isLoading={isLoading} error={error} />
+          <h2>Results</h2>
+          {error && <div className="error">{error}</div>}
+          {isLoading && <ProgressLog messages={progressMessages} />}
+          {!isLoading && selectedCandidate ? (
+            <CandidateDetail
+              candidate={selectedCandidate}
+              onBack={() => setSelectedCandidate(null)}
+            />
+          ) : (
+            !isLoading && (
+              <CandidateTable
+                candidates={candidates}
+                jobTitle={jobTitle}
+                onSelect={setSelectedCandidate}
+              />
+            )
+          )}
         </div>
       </div>
     </div>
