@@ -352,6 +352,21 @@ Easily extensible — add more profiles to `backend/data/candidates.json`. Pool 
 
 ---
 
+## Frontend Note
+
+The production frontend is deployed via Lovable:
+https://catalyst-talent-scout-agent.lovable.app
+
+The `frontend/` directory in this repo contains the original
+React implementation and serves as a fallback deployment on Vercel:
+https://catalyst-talent-scout-agent.vercel.app
+
+Both frontends connect to the same Railway backend. The Lovable
+version offers additional UI features including multiple result
+views (List, Podium, Scatter, Table, Stack) and a JD parser tab.
+
+---
+
 ## 🔮 Production Roadmap
 
 Current implementation uses a mock candidate database for demo reliability. A production system would include:
