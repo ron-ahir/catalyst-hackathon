@@ -86,31 +86,11 @@ function App() {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        for (const line of chunk.split('\n')) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const evt = JSON.parse(line.slice(6));
-            if (evt.type === 'complete') {
-              clearIntervals();
-              setCandidates(evt.data.candidates || []);
-              setPoolStats({ total: evt.data.total_pool || 0, selected: evt.data.selected || 0 });
-              setIsLoading(false);
-            } else if (evt.type === 'error') {
-              clearIntervals();
-              setError(evt.message);
-              setIsLoading(false);
-            }
-          } catch (_) {}
-        }
-      }
+      const data = await response.json();
+      clearIntervals();
+      setCandidates(data.candidates || []);
+      setPoolStats({ total: data.total_pool || 0, selected: data.selected || 0 });
+      setIsLoading(false);
     } catch (err) {
       clearIntervals();
       setError(err.message || 'Failed to connect to API. Make sure the backend is running.');
