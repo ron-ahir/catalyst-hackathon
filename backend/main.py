@@ -2,7 +2,7 @@ import json
 import os
 import re
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from anthropic import AsyncAnthropic
@@ -39,6 +39,9 @@ class JobDescription(BaseModel):
     description: str
     required_skills: list[str]
     years_experience: int
+
+class ParseJDRequest(BaseModel):
+    raw_jd: str
 
 SYSTEM_PROMPT = """You are a JSON-only talent matching API. You NEVER output markdown, code fences, prose, preambles, apologies, or any text outside of a single JSON object. Your response must begin with { and end with } and be directly parseable by Python json.loads() with zero pre-processing.
 
@@ -120,6 +123,26 @@ def extract_json(raw_text: str) -> dict:
     raise ValueError(f"Cannot extract JSON. First 200 chars: {text[:200]}")
 
 
+PARSE_JD_SYSTEM_PROMPT = """You are a JSON-only job description parser. Extract structured information from the raw job description. Return ONLY a JSON object with keys: title (string), description (string, 2-3 sentence summary), required_skills (array of strings, max 6 skills), years_experience (integer, 0 if not specified).
+Never output markdown or any text outside the JSON object."""
+
+
+@app.post("/api/parse-jd")
+async def parse_jd(request: ParseJDRequest):
+    try:
+        client = AsyncAnthropic()
+        message = await client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=500,
+            system=PARSE_JD_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": f"Parse this job description:\n\n{request.raw_jd}"}]
+        )
+        result = extract_json(message.content[0].text)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.post("/api/scout")
 async def scout_candidates(job_desc: JobDescription):
     try:
@@ -146,10 +169,8 @@ async def scout_candidates(job_desc: JobDescription):
         return result
 
     except ValueError as e:
-        from fastapi import HTTPException
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        from fastapi import HTTPException
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/candidates")
