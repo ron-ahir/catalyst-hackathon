@@ -11,10 +11,18 @@ load_dotenv()
 
 app = FastAPI(title="Talent Scout Agent")
 
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+origins = ["*"] if frontend_url == "*" else [
+    frontend_url,
+    "http://localhost:3000",
+    "https://catalyst-talent-scout-agent.vercel.app",
+    "https://catalyst-talent-scout-agent.lovable.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")],
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
