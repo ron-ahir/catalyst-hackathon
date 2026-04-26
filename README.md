@@ -229,12 +229,6 @@ Evaluates all candidates and returns a ranked shortlist as JSON.
 - `400` — validation error (e.g. response truncated due to too many skills)
 - `500` — unexpected server error
 
-### GET `/api/candidates`
-Returns all candidates in the database.
-
-### GET `/health`
-Health check endpoint.
-
 ---
 
 ## 📐 Scoring Methodology
