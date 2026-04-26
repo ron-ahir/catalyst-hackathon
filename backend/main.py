@@ -3,7 +3,6 @@ import os
 import re
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from anthropic import AsyncAnthropic
@@ -113,18 +112,10 @@ def extract_json(raw_text: str) -> dict:
     raise ValueError(f"Cannot extract JSON. First 200 chars: {text[:200]}")
 
 
-async def scout_stream(job_desc: JobDescription):
-    def event(type_, **kwargs):
-        return f"data: {json.dumps({'type': type_, **kwargs})}\n\n"
-
-    yield event("progress", message="Parsing job requirements and required skills...")
-    yield event("progress", message="Loading candidate database...")
-
-    candidates_context = json.dumps(candidates_db, indent=2)
-
-    yield event("progress", message="Sending candidates to AI for skill matching and scoring...")
-
+@app.post("/api/scout")
+async def scout_candidates(job_desc: JobDescription):
     try:
+        candidates_context = json.dumps(candidates_db, indent=2)
         client = AsyncAnthropic()
         message = await client.messages.create(
             model="claude-sonnet-4-6",
@@ -134,11 +125,7 @@ async def scout_stream(job_desc: JobDescription):
         )
 
         if message.stop_reason == "max_tokens":
-            yield event("error", message="Response truncated — try fewer required skills.")
-            return
-
-        yield event("progress", message="Simulating outreach conversations...")
-        yield event("progress", message="Calculating final ranking scores...")
+            raise ValueError("Response truncated — try fewer required skills.")
 
         result = extract_json(message.content[0].text)
         result["candidates"] = sorted(
@@ -148,21 +135,14 @@ async def scout_stream(job_desc: JobDescription):
         )[:5]
         result["total_pool"] = TOTAL_POOL
         result["selected"] = len(result["candidates"])
-        yield event("complete", data=result)
+        return result
 
     except ValueError as e:
-        yield event("error", message=str(e))
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        yield event("error", message=f"Unexpected error: {str(e)}")
-
-
-@app.post("/api/scout")
-async def scout_candidates(job_desc: JobDescription):
-    return StreamingResponse(
-        scout_stream(job_desc),
-        media_type="text/event-stream",
-        headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"}
-    )
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/candidates")
 def get_candidates():
