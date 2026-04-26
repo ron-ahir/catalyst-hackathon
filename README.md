@@ -36,8 +36,8 @@ Recruiting is slow and manual. Recruiters spend hours sifting through profiles a
 
 ### 3. **Real-Time Progress**
 - Live pulsing animation with rotating status messages while Claude processes
-- Server-Sent Events (SSE) stream progress updates to frontend
-- Final `complete` event delivers full structured JSON result
+- Client-side `setInterval` cycles through status messages independently
+- Single HTTP POST returns full structured JSON when ready
 
 ### 4. **Full-Stack Deployment**
 - Backend: FastAPI + Claude API on Railway
@@ -76,6 +76,16 @@ catalyst-hackathon/
 RECRUITER INPUT: Job Description
 ↓
 ┌─────────────────────────────────────────┐
+│         React Frontend (Vercel)         │
+│                                         │
+│  - POST /api/scout with JD payload      │
+│  - Pulsing dots animation (setInterval) │
+│    cycles messages client-side while    │
+│    awaiting the HTTP response           │
+└──────────────────┬──────────────────────┘
+│ HTTP POST (JSON body)
+▼
+┌─────────────────────────────────────────┐
 │         FastAPI Backend (Railway)       │
 │                                         │
 │  1. Receive JD (title, skills, exp)     │
@@ -86,15 +96,14 @@ RECRUITER INPUT: Job Description
 │     - Simulate outreach conversations   │
 │     - Return top 5 with full breakdown  │
 │  4. Sort by final_score, return top 5   │
-│  5. Stream progress events via SSE      │
-│  6. Emit complete event with JSON       │
+│  5. Return JSON response directly       │
 └──────────────────┬──────────────────────┘
-│ Server-Sent Events (SSE)
+│ JSON response
 ▼
 ┌─────────────────────────────────────────┐
 │         React Frontend (Vercel)         │
 │                                         │
-│  - Pulsing dots loading animation       │
+│  - response.json() parsed               │
 │  - Ranked candidates table              │
 │  - Click → Full traceable breakdown:    │
 │    • Skill-by-skill match evidence      │
@@ -172,7 +181,7 @@ RECRUITER INPUT: Job Description
 ## 📊 API Endpoints
 
 ### POST `/api/scout`
-Streams talent scouting results via SSE.
+Evaluates all candidates and returns a ranked shortlist as JSON.
 
 **Request Body:**
 ```json
@@ -184,10 +193,19 @@ Streams talent scouting results via SSE.
 }
 ```
 
-**Response:** Server-Sent Events stream
-data: {"type": "progress", "message": "Parsing job requirements..."}
-data: {"type": "progress", "message": "Sending candidates to AI..."}
-data: {"type": "complete", "data": { ...full ranked JSON... }}
+**Response:** `200 OK` — JSON object
+```json
+{
+  "job_title": "Senior Backend Engineer",
+  "total_pool": 50,
+  "selected": 5,
+  "candidates": [ ...top 5 ranked candidates... ]
+}
+```
+
+**Error responses:**
+- `400` — validation error (e.g. response truncated due to too many skills)
+- `500` — unexpected server error
 
 ### GET `/api/candidates`
 Returns all candidates in the database.
@@ -337,7 +355,7 @@ The agent architecture is designed for this evolution — data sources are fully
 **Frontend:**
 - React 18+
 - Vanilla CSS
-- Fetch API with SSE streaming
+- Fetch API (HTTP REST)
 
 **Deployment:**
 - Railway (Backend)
